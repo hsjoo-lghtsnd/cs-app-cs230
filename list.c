@@ -11,6 +11,15 @@ set the key value to the key provided by the argument
  */
 struct list_node *allocate_node_with_key(int key)
 {
+  struct list_node *p;
+  p = (struct list_node*)malloc(sizeof(struct list_node));
+
+  p->next = NULL;
+  p->prev = NULL;
+  p->key = key;
+  p->value = NULL;
+
+  return p;
 }
 
 /*	
@@ -19,6 +28,19 @@ Also, link the head and tail to point to each other
  */
 void initialize_list_head_tail(struct list_node *head, struct list_node *tail)
 {
+  if (head != NULL) {
+    head->prev = tail;
+    head->next = tail;
+    head->key = -1;
+  }
+
+  if (tail != NULL) {
+    tail->prev = head;
+    tail->next = head;
+    tail->key = -1;
+  }
+
+  return;
 }
 
 /*	
@@ -26,6 +48,16 @@ Insert the *new_node* after the *node*
  */
 void insert_node_after (struct list_node *node, struct list_node *new_node)
 {
+  struct list_node *n;
+  n = node->next;
+
+  node->next = new_node;
+  new_node->prev = node;
+
+  new_node->next = n;
+  n && (n->prev = new_node);
+
+  return;
 }
 
 /*	
@@ -33,6 +65,17 @@ Remove the *node* from the list
  */
 void del_node (struct list_node *node)
 {
+  struct list_node *n;
+  struct list_node *p;
+  n = node->next;
+  p = node->prev;
+
+  n && (n->prev = p);
+  p && (p->next = n);
+
+  free(node);
+
+  return;
 }
 
 /*	
@@ -44,6 +87,21 @@ You may assume that the list will only hold nodes with unique key values
  */
 struct list_node *search_list (struct list_node *head, int search_key)
 {
+  struct list_node *cursor;
+  cursor = head->next;
+
+  while (cursor != head) {
+    if (cursor == head->prev) { // tail
+      break;
+    }
+
+    if (cursor->key == search_key) {
+      return cursor;
+    }
+    cursor = cursor->next;
+  }
+
+  return NULL;
 }
 
 /*	
@@ -52,6 +110,17 @@ and return the counted value
  */
 int count_list_length (struct list_node *head)
 {
+  struct list_node *cursor;
+  int counter;
+
+  counter = 0;
+  cursor = head->next;
+
+  while (cursor != head->prev) {
+    counter++;
+    cursor = cursor->next;
+  }
+  return counter;
 }
 
 /*	
@@ -60,6 +129,7 @@ Return 1 if empty. Return 0 if list is not empty.
  */
 int is_list_empty (struct list_node *head)
 {
+  return !(count_list_length(head));
 }
 
 /*	
@@ -70,7 +140,7 @@ at points where you need to debug your list.
 But make sure to test your final version with the original test.c code.
  */
 void iterate_print_keys (struct list_node *head)
-{
+{ // this is not tested
 }
 
 /*	
@@ -79,4 +149,16 @@ list (including the key of the *new_node*) is always sorted (increasing order)
  */
 int insert_sorted_by_key (struct list_node *head, struct list_node *new_node)
 {
+  struct list_node *cursor;
+  cursor = head->next;
+
+  while (cursor != head->prev) {
+    if (cursor->key > new_node->key) {
+      insert_node_after(cursor->prev,new_node);
+      return 0;
+    }
+    cursor = cursor->next;
+  }
+  insert_node_after((head->prev)->prev,new_node);
+  return 0;
 }
